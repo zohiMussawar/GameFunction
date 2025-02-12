@@ -7,41 +7,82 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-namespace Game.Function;
 
-    public class HttpGameAPI
-    {
-        private readonly ILogger<HttpGameAPI> _logger;
-
-        private readonly GamesContext _context;
-
-        public HttpGameAPI(ILogger<HttpGameAPI> logger,GamesContext context)
-        {
-            _logger = logger;
-            _context=context;
-        }
-
-        [Function("Welcome")]
-        public IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
-        {
-            _logger.LogInformation("C# HTTP trigger function processed a request.");
-            return new OkObjectResult("Welcome to Azure Functions!");
-        }
-        [Function("GetGames")]
-public HttpResponseData GetGames(
-[HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "games")] HttpRequestData req)
+namespace Game.Function
 {
-    _logger.LogInformation("C# HTTP GET/posts trigger function processed a request in GetStudents().");
+        public class HttpGameAPI
+        {
+            private readonly ILogger<HttpGameAPI> _logger;
 
-    var games = _context.Games.ToArray();
+            private readonly GamesContext _context;
 
-    var response = req.CreateResponse(HttpStatusCode.OK);
-    response.Headers.Add("Content-Type", "application/json");
+            public HttpGameAPI(ILogger<HttpGameAPI> logger,GamesContext context)
+            {
+                _logger = logger;
+                _context=context;
+            }
 
-    response.WriteStringAsync(JsonConvert.SerializeObject(games));
+            [Function("Welcome")]
+            public IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
+            {
+                _logger.LogInformation("C# HTTP trigger function processed a request.");
+                return new OkObjectResult("Welcome to Azure Functions!");
+            }
+            [Function("GetGames")]
+    public HttpResponseData GetGames(
+    [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "games")] HttpRequestData req)
+    {
+        _logger.LogInformation("C# HTTP GET/posts trigger function processed a request in GetStudents().");
 
-    return response;
-}
+        var games = _context.Games.ToArray();
 
+        var response = req.CreateResponse(HttpStatusCode.OK);
+        response.Headers.Add("Content-Type", "application/json");
+
+        response.WriteStringAsync(JsonConvert.SerializeObject(games));
+
+        return response;
     }
+    [Function("GetGamesById")]
+    public HttpResponseData GetGamesById
+    (
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "games/{id}")] HttpRequestData req,
+        int id
+    )
+    {
+        _logger.LogInformation("C# HTTP GET/posts trigger function processed a request.");
+        var games = _context.Games.FindAsync(id).Result;
+        if (games == null)
+        {
+            var response = req.CreateResponse(HttpStatusCode.NotFound);
+            response.Headers.Add("Content-Type", "application/json");
+            response. WriteStringAsync("Not Found");
+            return response;
+        }
+        var response2 = req.CreateResponse(HttpStatusCode.OK);
+        response2.Headers.Add("Content-Type", "application/json");
+        response2. WriteStringAsync(JsonConvert.SerializeObject(games));
+        return response2;
+    }
+    // [Function("CreateGame")]
+    // public HttpResponseData CreateGame
+    // (
+    //     [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "games")] HttpRequestData req
+    // )
+    // {
+    //     _logger.LogInformation("C# HTTP POST/posts trigger function processed a request.");
+    //     var games = JsonConvert.DeserializeObject<Game>(req.ReadAsStringAsync().Result);
+    //     _context.Games.Add(games);
+    //     _context.SaveChanges();
+    //     var response = req.CreateResponse(HttpStatusCode.Created);
+    //     response.Headers.Add("Content-Type", "application/json");
+    //     response. WriteStringAsync(JsonConvert.SerializeObject(games));
+    //     return response;
+    // }
 
+
+
+    //     }
+        
+        }
+}
