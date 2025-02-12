@@ -1,7 +1,12 @@
+using GameFunction.Models.Games;
 using Microsoft.Azure.Functions.Worker.Builder;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 var builder = FunctionsApplication.CreateBuilder(args);
+builder.Services.AddDbContext<GamesContext>(options =>
+    options.UseSqlServer(Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING")));
 
 builder.ConfigureFunctionsWebApplication();
 
